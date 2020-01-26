@@ -1,0 +1,1023 @@
+/*******************************
+//
+//    Name:       Jeffery Wood
+//
+//    Homework:   3
+//
+//    Class:      ICS 212
+//
+//    Instructor: Ravi Narayan
+//
+//    File:       llist.cpp
+//
+//    Description:
+//      this file contains the functions for the llist
+//
+***********************************/
+#include <iostream>
+#include <cstring>
+#include <fstream>
+#include "record.h"
+#include "llist.h"
+
+using namespace std;
+
+
+/**********************************
+//
+//    Name: llist
+//
+//    Description: creates a new linked list
+//
+//    Parameters: none
+//
+//    Return:
+//
+***********************************/
+
+llist::llist()
+{
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:Default Constructor\n";
+        cout << "**Debug:\n No Parameters\n\n";
+    #endif
+
+    this->start = NULL;
+    strcpy(filename,"save.txt");
+    readfile();
+}
+
+/**********************************
+//
+//    Name: llist
+//
+//    Description: creates a new linked list and reads from given file
+//
+//    Parameters: char[], file name
+//
+//    return:
+//
+***********************************/
+
+llist::llist(char file[])
+{
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:Constructor with File name\n";
+        cout << "**Debug:\n File Name: "<< file << "\n\n";
+    #endif
+    this->start = NULL;
+    strcpy(filename,file);
+    readfile();
+}
+
+/**********************************
+//
+//    Name: llist
+//
+//    Description: Creates a new linked list and copies from given llist.
+//
+//    Parameters: llist*, list to be copied from
+//
+//    Return:
+//
+************************************/
+
+llist::llist(llist* copied)
+{
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:Constructor with llist\n";
+        cout << "**Debug:\n Linked List: "<< copied << "\n\n";
+    #endif
+
+    strcpy(this->filename,copied->filename);
+    record * temp = copied->start;
+    while(temp != NULL)
+    {
+        this->addRecord(temp->accountno,temp->name,temp->address);
+    }
+}
+
+/**********************************
+//
+//    Name: ~llist
+//
+//    Description: Destructor for llist deallocates all records
+//
+//    Parameters: none
+//
+//    return:
+//
+***********************************/
+
+llist::~llist()
+{
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:destructor\n";
+        cout << "**Debug: No Parameters\n\n";
+    #endif
+
+    writefile();
+    cleanup();
+}
+
+/**********************************
+//
+//    Name: cleanup
+//
+//    Description: Deallocates the records
+//
+//    Parameters: None
+//
+//    Return:
+//
+***********************************/
+
+void llist::cleanup()
+{
+    record * temp = start;
+    record * del;
+    while(temp != NULL)
+    {
+        del = temp;
+        temp = temp->next;
+        delete(del);
+    }
+}
+/**********************************
+//
+//    Name: reverse
+//
+//    Description: Public function to call reverse
+//
+//    Parameters: none
+//
+//    Return: None
+**********************************/
+
+void llist::reverse()
+{
+    record * temp = NULL;
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:Reverse\n";
+        cout << "**Debug:\n No Parameters";
+    #endif
+
+    if(this->start == NULL || this->start->next == NULL)
+    {
+        cout << "\nNothing to Reverse\n\n";
+    }
+    else
+    {
+        temp = reverse(this->start);
+        this->start->next = NULL;
+        this->start = temp;
+        cout << "\nReverse Finished\n\n";
+    }
+}
+
+/**********************************
+//
+//    Name: Reverse
+//
+//    Description: Actual reverse fucntion, reverse the list
+//
+//    Parameters: record*, record to be reversed
+//
+//    Return: record*
+//
+***********************************/
+
+record* llist::reverse(record* node)
+{
+    record * temp = node;
+    record * end = NULL;
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:Reverse\n";
+        cout << "**Debug:\n Node: " << node << "\n\n";
+    #endif
+    if(node->next->next == NULL)
+    {
+        end = node->next;
+        node->next->next = node;
+        return end;
+    }
+    else
+    {
+         end = reverse(node->next);
+         temp->next->next = temp;
+    }
+    return end;
+
+}
+/**********************************
+//
+//    Name: addRecord
+//
+//    Description: add a record with the given account number name and address.
+//
+//    Parameters: struct record ** the list of records, int the account number, char [ ] the name,char [ ] the address.
+//
+//    return: returns 0 for success 1 for failure.
+//
+***********************************/
+int llist::addRecord(int accnm, char name[ ], char address[ ])
+{
+    int val = 1;
+    int flag = 0;
+    int need = 0;
+    struct record* temp = NULL;
+    struct record* current = start;
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:Add Record\n";
+        cout << "**Debug:\n Account Number: " << accnm << "\nName: " << name << "\nAddress: " << address << "\n\n\n";
+    #endif
+    if(current == NULL)
+    {
+        flag = 1;
+        val = 0;
+        need = 1;
+        temp = new record();
+        temp->accountno = accnm;
+        strcpy(temp->name,name);
+        strcpy(temp->address,address);
+        temp->next = NULL;
+        start = temp;
+    }
+    while(flag == 0)
+    {
+        if(current->accountno == accnm)
+        {
+            flag = -1;
+            val = 1;
+            need = 1;
+        }
+        else if(current->next == NULL)
+        {
+            flag = -1;
+        }
+        else
+        {
+             current = current->next;
+        }
+    }
+    if(need == 0)
+    {
+	temp = new record();
+        temp->accountno = accnm;
+        strcpy(temp->name,name);
+        strcpy(temp->address,address);
+        temp->next = NULL;
+        current->next = temp;
+        val = 0;
+    }
+    if(val == 0)
+    {
+        cout << "Record Added Successfully\n";
+    }
+    else
+    {
+        cout << "Record was not Added\n";
+    }
+    return val;
+}
+
+
+
+/**********************************
+//
+//    Name: printRecord
+//
+//    Description: Prints a record based on the given account number.
+//
+//    Parameters: struct record * the data base,int the account number.
+//
+//    return: returns 0 for success 1 for failure.
+//
+***********************************/
+
+int llist::printRecord(int accnm)
+{
+    struct record* temp = start;
+    int flag = 0;
+    int exist = 1;
+    int i;
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:Print Record\n";
+        cout << "**Debug:\n Account Number: "<< accnm << "\n\n";
+    #endif
+    if(temp == NULL)
+    {
+        flag = -1;
+    }
+    else
+    {
+
+        while(flag == 0)
+        {
+           if(temp == NULL)
+           {
+               flag = -1;
+               exist = 1;
+           }
+           else if(temp->accountno == accnm)
+           {
+               flag = -1;
+               exist = 0;
+           }
+           else
+           {
+               temp = temp->next;
+           }
+        }
+        if(exist == 0)
+        {
+            cout << '\n';
+            cout << "Account Number: " <<  temp->accountno << "\n";
+            cout << "Name: "<< temp->name << "\n";
+            cout << "Address: ";
+            for(i = 0;i<80;i++)
+            {
+                cout << temp->address[i];
+                if(temp->address[i]=='\0')
+                {
+                    i = 80;
+                }
+            }
+            cout << '\n';
+        }
+    }
+    if(exist != 0)
+    {
+        cout << "\nRecord Print Failed\n\n";
+    }
+    else
+    {
+        cout << "\nRecord Print Successful\n\n";
+    }
+    return exist;
+}
+
+/*********************************
+//
+//    Name: modifyRecord
+//
+//    Description: Changes the address on record of a given account number.
+//
+//    Parameters: struct record * the data base, int the account number, char [ ] address.
+//
+//    Return: returns 0 for success and 1 for failure.
+//
+**********************************/
+
+int llist::modifyRecord (int accnm, char address[ ])
+{
+ int val = 0;
+    struct record* temp = start;
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:Modify Record\n";
+        cout << "**Debug:\nAccount Number: " << accnm << "\nAddress: " << address << "\n\n\n";
+    #endif
+
+    while(temp != NULL && temp->accountno != accnm)
+    {
+        temp = temp->next;
+    }
+
+    if(temp == NULL)
+    {
+        val = 1;
+    }
+
+    if(val != 1)
+    {
+        strcpy(temp->address,address);
+    }
+    if(val == 0)
+    {
+    cout << "Record Modified\n";
+    }
+    else
+    {
+        cout << "Record Modify Failed\n";
+    }
+    return val;
+}
+
+/*********************************
+//
+//    Name: Operator =
+//
+//    Description: Overloads = to copy llist objects
+//
+//    Parameters: llist, llist to be copied from
+//
+//    Returns: llist
+//
+*********************************/
+
+llist & llist :: operator= (llist & copied)
+{
+    llist * copy = new llist(copied.filename);
+    record * temp = copied.start;
+    while(temp != NULL)
+    {
+        copy->addRecord(temp->accountno,temp->name,temp->address);
+    }
+    return *copy;
+}
+
+
+
+
+/*********************************
+//
+//    Name: Operator <<
+//
+//    Description: Overloads << to accept llist object
+//
+//    Parameters: struct record * the data base, os stream, stream to input.
+//
+//    Return: os stream, so you can chain
+//
+**********************************/
+
+ostream& operator << (ostream& os, llist& myList)
+{
+    struct record* temp;
+    int flag = 0;
+    int exist = 0;
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:overloaded <<\n";
+        cout << "**Debug:Prints all records of a given database\n\n";
+    #endif
+
+    if(myList.start == NULL)
+    {
+        flag = -1;
+        os << "\nNothing To Print\n";
+        exist = 1;
+    }
+    else
+    {
+        temp = myList.start;
+    }
+    cout << '\n';
+    while(flag == 0)
+    {
+         os << "Accountno: " << temp->accountno << "\n";
+         os << "Name: " << temp->name << "\n";
+         os << "Address: " <<  temp->address << "\n\n";
+         temp = temp->next;
+         if(temp == NULL)
+         {
+             flag = -1;
+         }
+    }
+    if(exist == 0)
+    {
+        os << "Print All Finished\n\n";
+    }
+    return os;
+}
+
+/********************************
+//
+//    Name: deleteRecord
+//
+//    Description: deletes a record of the given account number
+//
+//    Parameters:struct record ** pointer to the database, int the account number
+//
+//    Return: 0 for success or 1 for failure
+//
+********************************/
+
+int llist::deleteRecord(int accnm)
+{
+    int flag = 0;
+    int val = 1;
+    struct record* lead;
+    struct record* trail = this -> start;
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:Delete Record\n";
+        cout << "**Debug:\nAccount Number: " << accnm << "\n\n";
+    #endif
+    if(start == NULL)
+    {
+        flag = -1;
+    }
+    else if(trail->accountno == accnm && trail->next == NULL)
+    {
+        delete(start);
+        start = NULL;
+        val = 0;
+        flag = -1;
+    }
+    else if(trail->accountno == accnm && trail->next != NULL)
+    {
+        start = trail->next;
+        delete(trail);
+        val = 0;
+        flag = -1;
+    }
+    else if(trail->accountno != accnm && trail->next == NULL)
+    {
+        flag = -1;
+    }
+    else
+    {
+        lead = trail->next;
+    }
+    while(flag == 0)
+    {
+        if(lead == NULL)
+        {
+            flag = -1;
+        }
+        else if(lead->accountno == accnm)
+        {
+            trail->next = lead->next;
+            delete(lead);
+            flag = -1;
+            val = 0;
+        }
+        else
+        {
+            trail = lead;
+            lead = lead->next;
+        }
+    }
+    if(val == 0)
+    {
+        cout << "\nRecord Deleted\n\n";
+    }
+    else
+    {
+        cout << "\nRecord Delete Unsuccessful\n\n";
+    }
+    return val;
+}
+
+/**********************************
+//
+//    Name: readfile
+//
+//    Description: Reads a file given the file name
+//        into a given linked list from the record** start
+//
+//    Parameters: char[] file name, record** pointer
+//        to the start of the list
+//
+//    return: 0 : success
+//            1 : fail
+//
+************************************/
+
+int llist::readfile()
+{
+    int i = 0;
+    int returnVal = 0;
+    ifstream input;
+    char newAddress[80];
+    char newName[25];
+    int newAccnm = 0;
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:readfile\n";
+        cout << "**Debug:\nFile Name: " << this->filename << "\n\n";
+    #endif
+    input.open(filename, fstream::in);
+    while(input >> newAccnm && input.is_open())
+    {
+        input.get(newName[0]); //Gets rid of \n after the accnm
+
+        //Getting Name
+        for(i = 0;i<25;i++)
+        {
+            input.get(newName[i]);
+            if(newName[i] == '\n')
+            {
+                newName[i] = '\0';
+                i = 100;
+            }
+        }
+
+        //Getting Address
+        for(i = 0;i<80;i++)
+        {
+            input.get(newAddress[i]);
+            if(newAddress[i] == '\n' && newAddress[i - 1] == '\n')
+            {
+                newAddress[i] = '\0';
+                newAddress[i - 1] = '\0';
+                i = 100;
+            }
+        }
+        this->addRecord(newAccnm,newName,newAddress);
+    }
+    return returnVal;
+}
+
+/*************************************
+//
+//    Name: writefile
+//
+//    Description: writes a file of records
+//         given file name and the starting
+//         position of a linked list
+//
+//    Parameters: char[] file name, record*
+//        pointer to the first linked list node
+//
+//    return: 0 : Succes
+//            1 : Fail
+//
+***************************************/
+
+int llist::writefile()
+{
+    int returnVal = 0;
+    record* temp = start;
+    ofstream output;
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:writefile\n";
+        cout << "**Debug:\nFile Name: " << filename << "\n\n";
+    #endif
+    if(filename == NULL)
+    {
+        returnVal = 1;
+    }
+    else
+    {
+        output.open(filename,fstream::trunc | fstream::out);
+        if(output.is_open())
+        {
+            while(temp != NULL)
+            {
+                output << temp->accountno << "\n";
+                output << temp->name << "\n";
+                output << temp->address << "\n";
+                output << "\n";
+                temp = temp->next;
+            }
+            output.close();
+        }
+        else
+        {
+            cout << "Write File Failed";
+        }
+    }
+    return returnVal;
+}
+
+/*******************************
+//
+//    Name:       Jeffery Wood
+//
+//    Homework:   3
+//
+//    Class:      ICS 212
+//
+//    Instructor: Ravi Narayan
+//
+//    File:       project2.cpp
+//
+//    Description:
+//      this file contains the Main and user interface
+//      functions for project 2 - the account database
+//
+***********************************/
+
+#include <iostream>
+#include <cstring>
+#include "llist.h"
+
+using namespace std;
+
+
+void menu();
+void printMenu();
+int menuChoiceUI();
+void flush();
+void getaddress(char[],int);
+void getName(char[],int);
+int getAccountNumber();
+
+/**********************************
+//
+//    Function Name: main
+//
+//    Description: main of the file hw3.c
+//                 checks for debug mode
+//                 and starts  menu.
+//
+//    Parameter: argc,argv
+//               tells how many str there were entered
+//               argv hold each str entered.
+//
+//    Return: always 0.
+//
+***********************************/
+
+int main(int argc,char* argv[])
+{
+    menu();
+}
+
+/**********************************
+//
+//    Function Name: menu
+//
+//    Description: prints out the options for the
+//        user and then gets the user input.
+//
+//    Parameter: none
+//
+//    return: 0 always.
+//
+***********************************/
+
+void menu()
+{
+    int flag = 1;
+    int choice;
+    llist * myList = new llist();
+    while(flag == 1)
+    {
+        printMenu();
+        choice = menuChoiceUI();
+        if(choice == 1)
+        {
+             int accnm;
+             char name[25];
+             char address[80];
+             accnm = getAccountNumber();
+             getName(name, 25);
+             getaddress(address, 80);
+             myList->addRecord(accnm,name,address);
+        }
+        else if(choice == 2)
+        {
+             int accnm;
+             accnm = getAccountNumber();
+             myList->printRecord(accnm);
+        }
+        else if(choice == 3)
+        {
+             int accnm;
+             char address[80];
+             accnm = getAccountNumber();
+             getaddress(address, 80);
+             myList->modifyRecord(accnm, address);
+        }
+        else if(choice == 4)
+        {
+             cout << *myList;
+        }
+        else if(choice == 5)
+        {
+             int accnm;
+             accnm = getAccountNumber();
+             myList->deleteRecord(accnm);
+        }
+        else if(choice == 6)
+        {
+            myList->reverse();
+        }
+        else if(choice == 7)
+        {
+             delete(myList);
+             flag = 0;
+        }
+    }
+}
+/***************************************
+//
+//    Name: printMenu
+//
+//    Description: Prints out the menu options
+//
+//    Parameter: none
+//
+//    Return: none
+//
+****************************************/
+
+void printMenu()
+{
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:printMenu\n";
+        cout << "**Debug:No Parameters\n\n";
+    #endif
+    cout << "This is the menu for an Account Database\n";
+    cout << "(1)     Add a Record\n";
+    cout << "(2)     Print a Record\n";
+    cout << "(3)     Modify a Record\n";
+    cout << "(4)     Print all Records\n";
+    cout << "(5)     Delete a Record\n";
+    cout << "(6)     Reverse the List\n";
+    cout << "(7)     Quit Menu\n";
+}
+
+/***************************************
+//
+//    Name: menuChoiceUI
+//
+//    Description: gets the user's choice of options
+//
+//    Parameter: none
+//
+//    Return: returns an int based on what the user chose.
+//
+****************************************/
+
+int menuChoiceUI()
+{
+    int input;
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:menuChoiceUI\n";
+        cout << "**Debug:No Parameters\n\n";
+    #endif
+    cout << "Please enter the number of your choice to proceed: \n";
+    cin >> input;
+    flush();
+    while (cin.fail() || input <= 0 || input > 7)
+    {
+        cin.clear();
+        printMenu();
+        cout << "Please enter a VALID choice: \n";
+        cin >> input;
+        flush();
+    }
+    return input;
+}
+
+/***********************************
+//
+//    Name: flush
+//
+//    Description: Clears buffer
+//
+//    Parameter: none
+//
+//    Return:void
+//
+************************************/
+
+void flush()
+{
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:flush\n";
+        cout << "**Debug: No Parameters\n\n";
+    #endif
+    while(cin.get() != '\n')
+    {
+        cin.clear();
+    }
+
+}
+
+/*********************************
+//
+//    Name: getName
+//
+//    Description: gets the name
+//
+//    Parameter: Char name[] the array to be written to, int x the length of array
+//
+//    Return: void
+//
+**********************************/
+
+void getName(char name[], int x)
+{
+    int i = 0;
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:getName\n";
+        cout << "**Debug:\n Name: "<< name << "\n Array Length: " << x << "\n\n";
+    #endif
+    cout << "Your Name can only be " << x-1 << " characters long.\nPlease enter your Name: \n";
+    while (i < x && cin.get(name[i]))
+    {
+        if(name[i] == '\n')
+        {
+            name[i] = '\0';
+            i = x + 1;
+        }
+        i++;
+    }
+    if(i == x)
+    {
+        cout << "Sorry you Name can only be " <<  x-1 << " characters long. we only took" << x-1 << ".\n";
+        flush();
+    }
+}
+
+/*********************************
+//
+//    Name: getaddress
+//
+//    Description: gets address
+//
+//    Parameter: char address[] the array to be written to, int x the length of array
+//
+//    Return: void
+//
+**********************************/
+
+void getaddress(char address[], int x)
+{
+    int i = 0;
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:getaddress\n";
+        cout << "**Debug:\n Array Length:" << x << "\n\n";
+    #endif
+    cout << "Your Address can only be " << x-1 << " characters long.\n";
+    cout << "Please hit enter twice to end.\n";
+    cout << "Please enter your Address: \n";
+    while (i < x && cin.get(address[i]))
+    {
+        if(address[i] == '\n' && address[i-1] == '\n')
+        {
+            address[i] = '\0';
+            address[i - 1] = '\0';
+            i = x + 1;
+        }
+        i++;
+    }
+    if(i == x)
+    {
+        cout << "Sorry you Address can only be " << x-1 << " characters long. we only took " << x-1 << ".\n";
+        flush();
+    }
+}
+
+
+/*******************************
+//
+//    Name: getAccountNumber
+//
+//    Description: gets an account number and
+//    rejects invalid values, i.e negative
+//
+//    Parameter: none
+//
+//    return: returns an int that is the account number
+//
+*********************************/
+
+int getAccountNumber()
+{
+    int i;
+    int flag = 0;
+    #ifdef DEBUGMODE
+        cout << "\n**Debug:getAccountNumber\n";
+        cout << "**Debug:No Parameters\n\n";
+    #endif
+    cout << "Please enter an Account Number: \n";
+    while(flag ==0)
+    {
+        cin >> i;
+        flush();
+        if(cin.fail() || i <= 0)
+        {
+            cout << "Please enter a VALID Account Number: \n";
+        }
+        else
+        {
+        flag = 1;
+        }
+    }
+    return i;
+}
+
+
+#ifndef RECORD
+    #include "record.h"
+#endif
+#include <iostream>
+using namespace std;
+class llist
+{
+  private:
+    record *    start;
+    char        filename[16];
+    int         readfile();
+    int         writefile();
+    record *    reverse(record * );
+    void        cleanup();
+
+  public:
+    llist();
+    llist(char[]);
+    llist(llist*);
+    ~llist();
+    int addRecord (int, char [ ],char [ ]);
+    int printRecord (int);
+    int modifyRecord ( int, char [ ]);
+    friend ostream & operator << (ostream&, llist&);
+    llist & operator= (llist &);
+    int deleteRecord(int);
+    void reverse();
+};
+
+
